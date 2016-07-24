@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>说一下Handler的原理 | Terge&#39;s Android Life | 主动、无畏、习惯、沉淀</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="theme-color" content="#3F51B5">
+  
+  
+  <meta name="keywords" content="">
+  <meta name="description" content="Handler在解决什么问题?handler 是为了解决线程间通讯的问题而设计的
+如果让你设计你要怎么做？那么，如果没有handler，如何做到线程A与线程B进行通讯？回调？监听？这样的话，要么每次都要定义自己所写回调接口，双方必须定义好回调参数格式，要么定义一个通用方法，而handler其实就相当于这个通用的方法egg:主线程 启动了子线程A去完成一项任务，并对A说”你拿着这个handler，等">
+<meta property="og:type" content="article">
+<meta property="og:title" content="说一下Handler的原理">
+<meta property="og:url" content="http://terge.me/2016/07/16/说一下Handler的原理/index.html">
+<meta property="og:site_name" content="Terge's Android Life">
+<meta property="og:description" content="Handler在解决什么问题?handler 是为了解决线程间通讯的问题而设计的
+如果让你设计你要怎么做？那么，如果没有handler，如何做到线程A与线程B进行通讯？回调？监听？这样的话，要么每次都要定义自己所写回调接口，双方必须定义好回调参数格式，要么定义一个通用方法，而handler其实就相当于这个通用的方法egg:主线程 启动了子线程A去完成一项任务，并对A说”你拿着这个handler，等">
+<meta property="og:updated_time" content="2016-07-24T06:20:19.226Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="说一下Handler的原理">
+<meta name="twitter:description" content="Handler在解决什么问题?handler 是为了解决线程间通讯的问题而设计的
+如果让你设计你要怎么做？那么，如果没有handler，如何做到线程A与线程B进行通讯？回调？监听？这样的话，要么每次都要定义自己所写回调接口，双方必须定义好回调参数格式，要么定义一个通用方法，而handler其实就相当于这个通用的方法egg:主线程 启动了子线程A去完成一项任务，并对A说”你拿着这个handler，等">
+  
+    <link rel="alternative" href="/atom.xml" title="Terge&#39;s Android Life" type="application/atom+xml">
+  
+  <meta name="summary" content="description">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="loading" class="active"></div>
+
+  <nav id="menu" class="hide" >
+   <div class="inner flex-row-vertical">
+  <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+      <i class="icon icon-lg icon-close"></i>
+  </a>
+  <div class="brand-wrap">
+    <div class="brand">
+      <a href="/" class="avatar"><img src="/img/logo.jpg"></a>
+      <hgroup class="introduce">
+        <h5 class="nickname">唐自刚</h5>
+        <a href="mailto:undefined" title="i.terge.me@gmail.com" class="mail">i.terge.me@gmail.com</a>
+      </hgroup>
+    </div>
+  </div>
+  <ul class="nav flex-col">
+    
+        <li class="waves-block waves-effect">
+          <a href="/"  >
+            <i class="icon icon-lg icon-home"></i>
+            主页
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="/archives"  >
+            <i class="icon icon-lg icon-archives"></i>
+            Archives
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="/tags"  >
+            <i class="icon icon-lg icon-tags"></i>
+            Tags
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="https://github.com/terge" target="_blank" >
+            <i class="icon icon-lg icon-github"></i>
+            Github
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="http://www.weibo.com/zigtang" target="_blank" >
+            <i class="icon icon-lg icon-weibo"></i>
+            Weibo
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="/404"  >
+            <i class="icon icon-lg icon-link"></i>
+            测试
+          </a>
+        </li>
+    
+  </ul>
+
+  <footer class="footer">
+  <p><a rel="license" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0;vertical-align:middle;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA4UlEQVR42q2T1xqCMAyFk7QsBQeKA9x7j/d/OSm22CpX0nzcpA1/T05aAOuBVkMAScQFHLnEwoCo2f1TnQIGoVMewjZEjVFN4GH1Ue1Cn2jWqwfsOOj6wDwGvotsl/c8lv7KIq1eLOsT0HMFHMIE/RZyHnlphryT9zyV+8WH5e8yQw3wnQvgAFxPTKUVi555SHR/lOfLMgVTeDlSfN+TaoUsiTyeIm+bCkHvCA2FUKG48LDtYBZBknsYP/G8NTw0gaaHyuQf4H5pecrB/FYCT2sL9zAfy1Xyjou6L8X2W7YcLyBZCRtnq/zfAAAAAElFTkSuQmCC" /></a></p>
+  <p>Terge&#39;s Android Life &copy; 2016</p>
+  <p>Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme
+  <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a></p>
+  <a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-2x icon-rss-square"></i></a>
+</footer>
+
+</div>
+
+  </nav>
+  <main id="main">
+    <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">说一下Handler的原理</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input " autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-share">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header">
+  <div class="container">
+    <h1 class="author">说一下Handler的原理</h1>
+    <h5 class="subtitle">
+        
+            <time datetime="2016-07-16T07:33:31.000Z" itemprop="datePublished" class="page-time">
+  2016-07-16
+</time>
+
+
+        
+    </h5>
+  </div>
+</header>
+
+    <div class="container body-wrap">
+      <article id="post-说一下Handler的原理" 
+  class="article article-type-post" itemprop="blogPost">
+    <div class="post-meat flex-row">
+        
+    </div>
+    <div class="post-body">
+        <aside class="post-widget" id="post-widget">
+
+            
+            <div class="post-share" id="post-share">
+    <div class="tit">分享到：</div>
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" href="javascript:;" data-title="微博" data-service="tsina">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns" href="javascript:;" data-title="微信" data-service="weixin">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" href="javascript:;" data-title=" QQ" data-service="cqq">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" href="javascript:;" data-title=" Facebook" data-service="fb">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" href="javascript:;" data-title=" Twitter" data-service="twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="douban share-sns" href="javascript:;" data-title="豆瓣" data-service="douban">
+          豆
+        </a>
+      </li>
+    </ul>
+ </div>
+
+            
+
+            
+            <nav class="post-toc-wrap" id="post-toc">
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Handler在解决什么问题"><span class="post-toc-text">Handler在解决什么问题?</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#如果让你设计你要怎么做？"><span class="post-toc-text">如果让你设计你要怎么做？</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Handler是怎么设计来解决此问题的"><span class="post-toc-text">Handler是怎么设计来解决此问题的</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Handler的消息发到哪里了"><span class="post-toc-text">Handler的消息发到哪里了</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#ThreadLoacal是什么鬼"><span class="post-toc-text">ThreadLoacal是什么鬼</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#MessageQueue是怎么组织的？BlockQueue"><span class="post-toc-text">MessageQueue是怎么组织的？BlockQueue?</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Message可以插队么？Message-when"><span class="post-toc-text">Message可以插队么？Message.when</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Message可以发给不同的线程执行么？Message-target"><span class="post-toc-text">Message可以发给不同的线程执行么？Message.target</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#MainLooper-ActivityThread-man-如何做到一直待机"><span class="post-toc-text">MainLooper ActivityThread.man() 如何做到一直待机</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#sendMessage与postRunable有什么区别"><span class="post-toc-text">sendMessage与postRunable有什么区别</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#如何停止Looper"><span class="post-toc-text">如何停止Looper</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#消息执行的优先级"><span class="post-toc-text">消息执行的优先级</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#HandlerThread替我们做了哪些事情"><span class="post-toc-text">HandlerThread替我们做了哪些事情</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#为什么框架层要提示防止内存泄露？因为Looper会一直循环"><span class="post-toc-text">为什么框架层要提示防止内存泄露？因为Looper会一直循环</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#MessageQueue-的Barrier是什么鬼"><span class="post-toc-text">MessageQueue 的Barrier是什么鬼</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#ActivityThread是个好东西"><span class="post-toc-text">ActivityThread是个好东西</span></a></li></ol>
+            </nav>
+            
+        </aside>
+
+        <div class="post-main">
+
+            <div class="post-content" id="post-content" itemprop="postContent">
+            <h4 id="Handler在解决什么问题"><a href="#Handler在解决什么问题" class="headerlink" title="Handler在解决什么问题?"></a>Handler在解决什么问题?</h4><p>handler 是为了解决线程间通讯的问题而设计的</p>
+<h4 id="如果让你设计你要怎么做？"><a href="#如果让你设计你要怎么做？" class="headerlink" title="如果让你设计你要怎么做？"></a>如果让你设计你要怎么做？</h4><p>那么，如果没有handler，如何做到线程A与线程B进行通讯？<br>回调？监听？这样的话，要么每次都要定义自己所写回调接口，双方必须定义好回调参数格式，要么定义一个通用方法，而handler其实就相当于这个通用的方法<br>egg:主线程 启动了子线程A去完成一项任务，并对A说”你拿着这个handler，等你做完了用它告诉我就可以”，等到A做完了，通过handler.sendMessage来发出暗号，这时候主线程收到这个消息，就知道A已经做完了，然后去处理对应的逻辑。</p>
+<h4 id="Handler是怎么设计来解决此问题的"><a href="#Handler是怎么设计来解决此问题的" class="headerlink" title="Handler是怎么设计来解决此问题的"></a>Handler是怎么设计来解决此问题的</h4><p>对于这个功能，handler要定义成通用逻辑，所以handler提供了如下功能来满足不同业务场景需要（同性质的功能就不一一列出了）</p>
+<pre><code>1. obtainMessage()                //获取一个空消息
+2. sendMessage(Message msg)       //发送消息
+3. handleMessage(Message msg)     //收到消息
+4. post(Runnable r)               //抛出一个runnable
+5. removeCallbacks(Runnable r)    //移除runnable
+</code></pre><p>以上就构成了一个通用的回调逻辑，实际上我的很多的回调接口都可以通过此方式进行，用好系统提供的现成功能，一般情况下都好过于自己单独开发，除非你很清楚它并不能满足自己的需求</p>
+<p>好了，线程通讯的问题解决了，看起来并没有什么特殊的，就是定义了一个通用的回调方案，然而我们都知道那个Looper还没提到</p>
+<h4 id="Handler的消息发到哪里了"><a href="#Handler的消息发到哪里了" class="headerlink" title="Handler的消息发到哪里了"></a>Handler的消息发到哪里了</h4><p>handler.sendMessage 和handler.postRunanable其实质上最后都是调用到handler.sendMessageAt(msg,time)，runnable只是赋值给了msg.callback,也是一个消息，如果你愿意，完全可以Message.obtain(handler,runable)，再通过handler.sendMessage来发送runnable</p>
+<p>那么handler.sendMessageAt(msg,time) 的逻辑做的事情就是将msg入到消息队列里面去<br>queue.enqueueMessage(msg,time)</p>
+<h4 id="ThreadLoacal是什么鬼"><a href="#ThreadLoacal是什么鬼" class="headerlink" title="ThreadLoacal是什么鬼"></a>ThreadLoacal是什么鬼</h4><p>为什么你们都要提到theadLocal,这个与主题没有一毛钱关系，将其理解成Thread一个Map就很好理解了</p>
+<h4 id="MessageQueue是怎么组织的？BlockQueue"><a href="#MessageQueue是怎么组织的？BlockQueue" class="headerlink" title="MessageQueue是怎么组织的？BlockQueue?"></a>MessageQueue是怎么组织的？BlockQueue?</h4><p>具体的实现都在native中 ？暂且当做BlockQueue来理解//todo<br>enqueueMessage<br>异常情况(msg.target == null  || msg.isInUse() )<br>sendMessage会自动设置target,//什么场景下修改会为空？？<br>msg.isInUse会在入队列时候修改，所以在重复使用时候可以通过Message.obtain(msg)来客隆一份数据一样但是没有使用过的Message来使用<br>sendMessageAtFrontOfQueue</p>
+<p>此队列并非先进先出队列，而是一个LinkedQueue,在enqueueMessage,会根据Message.when，将其插入到合适的位置，队列中的消息是按照when排序的</p>
+<h4 id="Message可以插队么？Message-when"><a href="#Message可以插队么？Message-when" class="headerlink" title="Message可以插队么？Message.when"></a>Message可以插队么？Message.when</h4><p>在发消息时候发送一个when 比 当期MessageQueue时间还小的when即可插队到对头，你也许会说，我哪里知道当前对头的消息when是多少，所以直接设置when为0即可插队到对头，这可以应用在优先级高的处理</p>
+<p>但是when可以修改么？<br>when是package访问权限(还好不是final)，是否可以通过新建一个与其包名相同的类来修改？<br>when值来自 sendMessageAt的那个时间，在enqueue时候在MessageQueue里面被赋值，不要煞费苦心修改了，平时直接发送的sendMessage的when就是0<br>如果同时发送的消息如果都是0，还在排队处理的话，后来的消息会插在队列的前面，都是立即处理的话，处理谁都一样</p>
+<h4 id="Message可以发给不同的线程执行么？Message-target"><a href="#Message可以发给不同的线程执行么？Message-target" class="headerlink" title="Message可以发给不同的线程执行么？Message.target"></a>Message可以发给不同的线程执行么？Message.target</h4><p>Handler.obtain系列会将Message.target赋值为this<br>而Handler.postRunnable 获取的Message没有赋值target<br>但是无论哪种方式，最终会在enqueueMessage中将target赋值为Handler.this<br>也就是是说在使用哪个Handler发送消息，最终一定是进了他的Looper</p>
+<p>但是一旦enqueueMessage后，处理逻辑就以及脱离了Handler的控制了，执行的结果都只会发送到Message.target中</p>
+<h4 id="MainLooper-ActivityThread-man-如何做到一直待机"><a href="#MainLooper-ActivityThread-man-如何做到一直待机" class="headerlink" title="MainLooper ActivityThread.man() 如何做到一直待机"></a>MainLooper ActivityThread.man() 如何做到一直待机</h4><h4 id="sendMessage与postRunable有什么区别"><a href="#sendMessage与postRunable有什么区别" class="headerlink" title="sendMessage与postRunable有什么区别"></a>sendMessage与postRunable有什么区别</h4><p>最终都是调用setMessageAt(msg,time),不同的是获取Message方式不同，postRunable是将unable赋值给message.callback</p>
+<h4 id="如何停止Looper"><a href="#如何停止Looper" class="headerlink" title="如何停止Looper"></a>如何停止Looper</h4><p>Looper在loop的时候，如果取到一个Message为null，就会自行跳出，但是MessageQueue只有在队列为空和已经退出时候才会给Looper返回null. 不能通过发送null消息来停止，<br>同时Looper本身也提供了quite api来退出循环，原理是调用MQ.quite，在下一个next时候MQ返回给Looper一个null,这样Looper就自行结束</p>
+<p>在Looper中会调用msg.target.dispatchMessage(msg),这样又将消息返回给handler来执行了，而此时消息执行是looper中调用的，也就是消息执行是在looper所在的线程调用的，这样此消息也就在此线程被消费<br>同时会调用msg.resycleUnchecked()回收此对象</p>
+<h4 id="消息执行的优先级"><a href="#消息执行的优先级" class="headerlink" title="消息执行的优先级"></a>消息执行的优先级</h4><ul>
+<li>会先处理msg.callback也（post进来的runnable就是设置到callback中）</li>
+<li>如果handler有设置callback，消息会发送到callback的handlermessge()中消费</li>
+<li>如果没设置就在本handler.handlerMessage()中消费</li>
+<li>而一般情况下我的处理逻辑都在handlerMessage中，这样消息就又回来了</li>
+</ul>
+<h4 id="HandlerThread替我们做了哪些事情"><a href="#HandlerThread替我们做了哪些事情" class="headerlink" title="HandlerThread替我们做了哪些事情"></a>HandlerThread替我们做了哪些事情</h4><ul>
+<li><a href="http://blog.csdn.net/qq_23547831/article/details/50936584" target="_blank" rel="external">http://blog.csdn.net/qq_23547831/article/details/50936584</a></li>
+</ul>
+<h4 id="为什么框架层要提示防止内存泄露？因为Looper会一直循环"><a href="#为什么框架层要提示防止内存泄露？因为Looper会一直循环" class="headerlink" title="为什么框架层要提示防止内存泄露？因为Looper会一直循环"></a>为什么框架层要提示防止内存泄露？因为Looper会一直循环</h4><h4 id="MessageQueue-的Barrier是什么鬼"><a href="#MessageQueue-的Barrier是什么鬼" class="headerlink" title="MessageQueue 的Barrier是什么鬼"></a>MessageQueue 的Barrier是什么鬼</h4><h4 id="ActivityThread是个好东西"><a href="#ActivityThread是个好东西" class="headerlink" title="ActivityThread是个好东西"></a>ActivityThread是个好东西</h4>
+            <blockquote>
+                <p>
+                本文地址：
+                <a href="http://terge.me/2016/07/16/说一下Handler的原理/" target="_blank" rel="external">http://terge.me/2016/07/16/说一下Handler的原理/</a>
+                </p>
+                <footer><cite><a href="http://terge.me">@Terge's Android Life</a></cite></footer>
+            </blockquote>
+            </div>
+            
+<nav class="post-nav">
+  
+
+  
+    <div class="waves-block waves-effect next fr">
+      <a href="/2016/07/16/WHY-HOW-WHEN/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">WHY？HOW? WHEN?</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+            
+            
+
+
+
+        </div>
+    </div>
+</article>
+    </div>
+  </main>
+<div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+<script>
+var BLOG_SHARE = {
+    title: "说一下Handler的原理",
+    pic: "/img/logo.jpg",
+    summary: document.getElementsByName('summary')[0].content,
+    url: "http://terge.me/2016/07/16/说一下Handler的原理/index.html"
+};
+</script>
+<div class="global-share" id="global-share">
+    <div class="tit">分享到：</div>
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" href="javascript:;" data-title="微博" data-service="tsina">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns" href="javascript:;" data-title="微信" data-service="weixin">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" href="javascript:;" data-title=" QQ" data-service="cqq">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" href="javascript:;" data-title=" Facebook" data-service="fb">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" href="javascript:;" data-title=" Twitter" data-service="twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="douban share-sns" href="javascript:;" data-title="豆瓣" data-service="douban">
+          豆
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+<script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+
+<script src="/js/main.js"></script>
+
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<script type="text/template" id="search-tpl">
+<li class="item">
+    <a href="/{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</script>
+
+<script src="/js/search.js"></script>
+
+
+
+
+
+
+
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-80738215-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+</body>
+</html>
