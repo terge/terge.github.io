@@ -29,10 +29,10 @@ handler 是为了解决线程间通讯的问题而设计的
 
 	1. 他的消息发给谁？  
 	2. 消息又是由谁来消费的?
-	
+
 看看我们熟悉的四基友是如何协同工作的才能回答上述两个疑问：Thread - Looper - MessageQueue - Handler  
-  
-![](handler.png)
+
+![Handler-flow](http://oaumghlfk.bkt.clouddn.com/handler.png)
 
 
 1. 可以看到handler发送的消息，只是将消息塞到MessageQueue中，

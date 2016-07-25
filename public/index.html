@@ -166,38 +166,52 @@
     
     <div class="post-content" id="post-content" itemprop="postContent" >
     
-        <h4 id="Handler在解决什么问题"><a href="#Handler在解决什么问题" class="headerlink" title="Handler在解决什么问题?"></a>Handler在解决什么问题?</h4><p>handler 是为了解决线程间通讯的问题而设计的</p>
-<h4 id="如果让你设计你要怎么做？"><a href="#如果让你设计你要怎么做？" class="headerlink" title="如果让你设计你要怎么做？"></a>如果让你设计你要怎么做？</h4><p>那么，如果没有handler，如何做到线程A与线程B进行通讯？<br>回调？监听？这样的话，要么每次都要定义自己所写回调接口，双方必须定义好回调参数格式，要么定义一个通用方法，而handler其实就相当于这个通用的方法<br>egg:主线程 启动了子线程A去完成一项任务，并对A说”你拿着这个handler，等你做完了用它告诉我就可以”，等到A做完了，通过handler.sendMessage来发出暗号，这时候主线程收到这个消息，就知道A已经做完了，然后去处理对应的逻辑。</p>
-<h4 id="Handler是怎么设计来解决此问题的"><a href="#Handler是怎么设计来解决此问题的" class="headerlink" title="Handler是怎么设计来解决此问题的"></a>Handler是怎么设计来解决此问题的</h4><p>对于这个功能，handler要定义成通用逻辑，所以handler提供了如下功能来满足不同业务场景需要（同性质的功能就不一一列出了）</p>
-<pre><code>1. obtainMessage()                //获取一个空消息
-2. sendMessage(Message msg)       //发送消息
-3. handleMessage(Message msg)     //收到消息
-4. post(Runnable r)               //抛出一个runnable
-5. removeCallbacks(Runnable r)    //移除runnable
-</code></pre><p>以上就构成了一个通用的回调逻辑，实际上我的很多的回调接口都可以通过此方式进行，用好系统提供的现成功能，一般情况下都好过于自己单独开发，除非你很清楚它并不能满足自己的需求</p>
-<p>好了，线程通讯的问题解决了，看起来并没有什么特殊的，就是定义了一个通用的回调方案，然而我们都知道那个Looper还没提到</p>
+        <p>##主线任务  </p>
+<h4 id="Handler在解决什么问题"><a href="#Handler在解决什么问题" class="headerlink" title="Handler在解决什么问题?"></a>Handler在解决什么问题?</h4><p>handler 是为了解决线程间通讯的问题而设计的</p>
+<pre><code>- 解决线程通讯一个通用的回调就可以，何必整真么多事出来
+- handler给我们的印象是更新UI用的，如何与线程通讯联系起来
+- 仅仅是线程通讯么？如果要通知的线程已经执行完任务销毁了呢？又如果，他自己在处理其他事情，没空理你呢？
+</code></pre><p>线程通讯回调:handler.sendMessageAt()<br>为什么用来更新UI，大多数情况我们是用来是子线程来通知主线程来操作的，所以造成了这么个印象<br>为了避免多个子线程与主线程通讯，造成的混乱，设计成队列处理，一个个排队来，处理完一个再有请下一位</p>
+<h4 id="Handler提供了哪些API功能"><a href="#Handler提供了哪些API功能" class="headerlink" title="Handler提供了哪些API功能"></a>Handler提供了哪些API功能</h4><p>对于这个功能，handler要定义成通用逻辑，所以handler提供了如下功能来满足不同业务场景需要（同性质的功能就不一一列出了）</p>
+<pre><code>1. 发消息        sendMessageAt()
+2. 处理消息      handleMessage()
+</code></pre><p>这里对应就有两个疑问了:  </p>
+<pre><code>1. 他的消息发给谁？  
+2. 消息又是由谁来消费的?
+</code></pre><p>看看我们熟悉的四基友是如何协同工作的才能回答上述两个疑问：Thread - Looper - MessageQueue - Handler  </p>
+<p><img src="http://oaumghlfk.bkt.clouddn.com/handler.png" alt="Handler-flow"></p>
+<ol>
+<li>可以看到handler发送的消息，只是将消息塞到MessageQueue中，</li>
+<li>MessageQueue中的消息会被Looper逐个取出来</li>
+<li>执行Looper中的消息的主体是与Looper一一对应的Thread</li>
+<li>Thread只是调用message.target.dispatchMessage</li>
+<li>这个target兄便是handler,这样handler消息在人间这么走一遭，又回到了Handler.handlerMessage</li>
+<li>但是这个dispatchMessage是线程B来调用执行的，也就是此msg的逻辑是在ThreadB上执行的</li>
+</ol>
+<p>以上是结论，那么我们现在从源码角度来跟着Message，去人世间走一遭</p>
+<p>##支线任务</p>
 <h4 id="Handler的消息发到哪里了"><a href="#Handler的消息发到哪里了" class="headerlink" title="Handler的消息发到哪里了"></a>Handler的消息发到哪里了</h4><p>handler.sendMessage 和handler.postRunanable其实质上最后都是调用到handler.sendMessageAt(msg,time)，runnable只是赋值给了msg.callback,也是一个消息，如果你愿意，完全可以Message.obtain(handler,runable)，再通过handler.sendMessage来发送runnable</p>
 <p>那么handler.sendMessageAt(msg,time) 的逻辑做的事情就是将msg入到消息队列里面去<br>queue.enqueueMessage(msg,time)</p>
-<h4 id="ThreadLoacal是什么鬼"><a href="#ThreadLoacal是什么鬼" class="headerlink" title="ThreadLoacal是什么鬼"></a>ThreadLoacal是什么鬼</h4><p>为什么你们都要提到theadLocal,这个与主题没有一毛钱关系，将其理解成Thread一个Map就很好理解了</p>
+<h4 id="ThreadLoacal是什么鬼"><a href="#ThreadLoacal是什么鬼" class="headerlink" title="ThreadLoacal是什么鬼"></a>ThreadLoacal是什么鬼</h4><p>每个讲Handler都要提到theadLocal,这个与主题没有一毛钱关系，将其理解成Thread一个Map就好，想详细了解的自行Google,个人觉得这东西与Handler原理扯不上关系</p>
 <h4 id="MessageQueue是怎么组织的？BlockQueue"><a href="#MessageQueue是怎么组织的？BlockQueue" class="headerlink" title="MessageQueue是怎么组织的？BlockQueue?"></a>MessageQueue是怎么组织的？BlockQueue?</h4><p>具体的实现都在native中 ？暂且当做BlockQueue来理解//todo<br>enqueueMessage<br>异常情况(msg.target == null  || msg.isInUse() )<br>sendMessage会自动设置target,//什么场景下修改会为空？？<br>msg.isInUse会在入队列时候修改，所以在重复使用时候可以通过Message.obtain(msg)来客隆一份数据一样但是没有使用过的Message来使用<br>sendMessageAtFrontOfQueue</p>
 <p>此队列并非先进先出队列，而是一个LinkedQueue,在enqueueMessage,会根据Message.when，将其插入到合适的位置，队列中的消息是按照when排序的</p>
-<h4 id="Message可以插队么？Message-when"><a href="#Message可以插队么？Message-when" class="headerlink" title="Message可以插队么？Message.when"></a>Message可以插队么？Message.when</h4><p>在发消息时候发送一个when 比 当期MessageQueue时间还小的when即可插队到对头，你也许会说，我哪里知道当前对头的消息when是多少，所以直接设置when为0即可插队到对头，这可以应用在优先级高的处理</p>
+<h4 id="Message-when"><a href="#Message-when" class="headerlink" title="Message.when"></a>Message.when</h4><p>在发消息时候发送一个when 比 当期MessageQueue时间还小的when即可插队到对头，你也许会说，我哪里知道当前对头的消息when是多少，所以直接设置when为0即可插队到对头，这可以应用在优先级高的处理</p>
 <p>但是when可以修改么？<br>when是package访问权限(还好不是final)，是否可以通过新建一个与其包名相同的类来修改？<br>when值来自 sendMessageAt的那个时间，在enqueue时候在MessageQueue里面被赋值，不要煞费苦心修改了，平时直接发送的sendMessage的when就是0<br>如果同时发送的消息如果都是0，还在排队处理的话，后来的消息会插在队列的前面，都是立即处理的话，处理谁都一样</p>
-<h4 id="Message可以发给不同的线程执行么？Message-target"><a href="#Message可以发给不同的线程执行么？Message-target" class="headerlink" title="Message可以发给不同的线程执行么？Message.target"></a>Message可以发给不同的线程执行么？Message.target</h4><p>Handler.obtain系列会将Message.target赋值为this<br>而Handler.postRunnable 获取的Message没有赋值target<br>但是无论哪种方式，最终会在enqueueMessage中将target赋值为Handler.this<br>也就是是说在使用哪个Handler发送消息，最终一定是进了他的Looper</p>
+<h4 id="Message-target"><a href="#Message-target" class="headerlink" title="Message.target"></a>Message.target</h4><p>Handler.obtain系列会将Message.target赋值为this<br>而Handler.postRunnable 获取的Message没有赋值target<br>但是无论哪种方式，最终会在enqueueMessage中将target赋值为Handler.this<br>也就是是说在使用哪个Handler发送消息，最终一定是进了他的Looper</p>
 <p>但是一旦enqueueMessage后，处理逻辑就以及脱离了Handler的控制了，执行的结果都只会发送到Message.target中</p>
-<h4 id="MainLooper-ActivityThread-man-如何做到一直待机"><a href="#MainLooper-ActivityThread-man-如何做到一直待机" class="headerlink" title="MainLooper ActivityThread.man() 如何做到一直待机"></a>MainLooper ActivityThread.man() 如何做到一直待机</h4><h4 id="sendMessage与postRunable有什么区别"><a href="#sendMessage与postRunable有什么区别" class="headerlink" title="sendMessage与postRunable有什么区别"></a>sendMessage与postRunable有什么区别</h4><p>最终都是调用setMessageAt(msg,time),不同的是获取Message方式不同，postRunable是将unable赋值给message.callback</p>
+<h4 id="sendMessage与postRunable有什么区别"><a href="#sendMessage与postRunable有什么区别" class="headerlink" title="sendMessage与postRunable有什么区别"></a>sendMessage与postRunable有什么区别</h4><p>最终都是调用setMessageAt(msg,time),不同的是获取Message方式不同，postRunable是将unable赋值给message.callback</p>
+<p>##扩展任务</p>
 <h4 id="如何停止Looper"><a href="#如何停止Looper" class="headerlink" title="如何停止Looper"></a>如何停止Looper</h4><p>Looper在loop的时候，如果取到一个Message为null，就会自行跳出，但是MessageQueue只有在队列为空和已经退出时候才会给Looper返回null. 不能通过发送null消息来停止，<br>同时Looper本身也提供了quite api来退出循环，原理是调用MQ.quite，在下一个next时候MQ返回给Looper一个null,这样Looper就自行结束</p>
 <p>在Looper中会调用msg.target.dispatchMessage(msg),这样又将消息返回给handler来执行了，而此时消息执行是looper中调用的，也就是消息执行是在looper所在的线程调用的，这样此消息也就在此线程被消费<br>同时会调用msg.resycleUnchecked()回收此对象</p>
 <h4 id="消息执行的优先级"><a href="#消息执行的优先级" class="headerlink" title="消息执行的优先级"></a>消息执行的优先级</h4><ul>
 <li>会先处理msg.callback也（post进来的runnable就是设置到callback中）</li>
 <li>如果handler有设置callback，消息会发送到callback的handlermessge()中消费</li>
 <li>如果没设置就在本handler.handlerMessage()中消费</li>
-<li>而一般情况下我的处理逻辑都在handlerMessage中，这样消息就又回来了</li>
-</ul>
-<h4 id="HandlerThread替我们做了哪些事情"><a href="#HandlerThread替我们做了哪些事情" class="headerlink" title="HandlerThread替我们做了哪些事情"></a>HandlerThread替我们做了哪些事情</h4><ul>
+<li>而一般情况下我的处理逻辑都在handlerMessage中，这样消息就又回来了<h4 id="聊一聊HandlerThread"><a href="#聊一聊HandlerThread" class="headerlink" title="聊一聊HandlerThread"></a>聊一聊HandlerThread</h4></li>
 <li><a href="http://blog.csdn.net/qq_23547831/article/details/50936584" target="_blank" rel="external">http://blog.csdn.net/qq_23547831/article/details/50936584</a></li>
 </ul>
-<h4 id="为什么框架层要提示防止内存泄露？因为Looper会一直循环"><a href="#为什么框架层要提示防止内存泄露？因为Looper会一直循环" class="headerlink" title="为什么框架层要提示防止内存泄露？因为Looper会一直循环"></a>为什么框架层要提示防止内存泄露？因为Looper会一直循环</h4><h4 id="MessageQueue-的Barrier是什么鬼"><a href="#MessageQueue-的Barrier是什么鬼" class="headerlink" title="MessageQueue 的Barrier是什么鬼"></a>MessageQueue 的Barrier是什么鬼</h4><h4 id="ActivityThread是个好东西"><a href="#ActivityThread是个好东西" class="headerlink" title="ActivityThread是个好东西"></a>ActivityThread是个好东西</h4>
+<h4 id="MainLooper-ActivityThread-man-如何做到一直待机"><a href="#MainLooper-ActivityThread-man-如何做到一直待机" class="headerlink" title="MainLooper ActivityThread.man() 如何做到一直待机"></a>MainLooper ActivityThread.man() 如何做到一直待机</h4><h4 id="为什么框架层要提示防止内存泄露？因为Looper会一直循环"><a href="#为什么框架层要提示防止内存泄露？因为Looper会一直循环" class="headerlink" title="为什么框架层要提示防止内存泄露？因为Looper会一直循环"></a>为什么框架层要提示防止内存泄露？因为Looper会一直循环</h4><h4 id="MessageQueue-的Barrier是什么鬼"><a href="#MessageQueue-的Barrier是什么鬼" class="headerlink" title="MessageQueue 的Barrier是什么鬼"></a>MessageQueue 的Barrier是什么鬼</h4><h4 id="ActivityThread是个好东西"><a href="#ActivityThread是个好东西" class="headerlink" title="ActivityThread是个好东西"></a>ActivityThread是个好东西</h4><p>ActivityThread不是Thread</p>
+
     
     </div>
     
