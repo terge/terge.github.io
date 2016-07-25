@@ -26,8 +26,8 @@ Handler在解决什么问题?handler 是为了解决线程间通讯的问题而�
 - handler给我们的印象是更新UI用的，如何与线程通讯联系起来
 - 仅仅是线程通讯么？如果要通知的线程已经执行完任务销毁了呢？又如果，他自己在处理其他事情，没空理你呢？
 线程通讯回调:handler.sendMessageAt()为什么">
-<meta property="og:image" content="http://oaumghlfk.bkt.clouddn.com/handler.png">
-<meta property="og:updated_time" content="2016-07-25T02:36:08.465Z">
+<meta property="og:image" content="http://oaumghlfk.bkt.clouddn.com/handler.png?watermark/2/text/dGVyZ2UubWU=/font/5a6L5L2T/fontsize/500/fill/I0E3MDYwNg==/dissolve/54/gravity/SouthEast/dx/10/dy/10">
+<meta property="og:updated_time" content="2016-07-25T12:08:54.015Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="说一下Handler的原理">
 <meta name="twitter:description" content="##主线任务  
@@ -36,7 +36,7 @@ Handler在解决什么问题?handler 是为了解决线程间通讯的问题而�
 - handler给我们的印象是更新UI用的，如何与线程通讯联系起来
 - 仅仅是线程通讯么？如果要通知的线程已经执行完任务销毁了呢？又如果，他自己在处理其他事情，没空理你呢？
 线程通讯回调:handler.sendMessageAt()为什么">
-<meta name="twitter:image" content="http://oaumghlfk.bkt.clouddn.com/handler.png">
+<meta name="twitter:image" content="http://oaumghlfk.bkt.clouddn.com/handler.png?watermark/2/text/dGVyZ2UubWU=/font/5a6L5L2T/fontsize/500/fill/I0E3MDYwNg==/dissolve/54/gravity/SouthEast/dx/10/dy/10">
   
     <link rel="alternative" href="/atom.xml" title="Terge&#39;s Android Life" type="application/atom+xml">
   
@@ -230,7 +230,7 @@ Handler在解决什么问题?handler 是为了解决线程间通讯的问题而�
 <pre><code>1. 他的消息发给谁？  
 2. 消息又是由谁来消费的?
 </code></pre><p>看看我们熟悉的四基友是如何协同工作的才能回答上述两个疑问：Thread - Looper - MessageQueue - Handler  </p>
-<p><img src="http://oaumghlfk.bkt.clouddn.com/handler.png" alt="Handler-flow"></p>
+<p><img src="http://oaumghlfk.bkt.clouddn.com/handler.png?watermark/2/text/dGVyZ2UubWU=/font/5a6L5L2T/fontsize/500/fill/I0E3MDYwNg==/dissolve/54/gravity/SouthEast/dx/10/dy/10" alt="Handler-flow"></p>
 <ol>
 <li>可以看到handler发送的消息，只是将消息塞到MessageQueue中，</li>
 <li>MessageQueue中的消息会被Looper逐个取出来</li>

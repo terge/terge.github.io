@@ -32,7 +32,8 @@ handler 是为了解决线程间通讯的问题而设计的
 
 看看我们熟悉的四基友是如何协同工作的才能回答上述两个疑问：Thread - Looper - MessageQueue - Handler  
 
-![Handler-flow](http://oaumghlfk.bkt.clouddn.com/handler.png)
+![Handler-flow](http://oaumghlfk.bkt.clouddn.com/handler.png?watermark/2/text/dGVyZ2UubWU=/font/5a6L5L2T/fontsize/500/fill/I0E3MDYwNg==/dissolve/54/gravity/SouthEast/dx/10/dy/10
+)
 
 
 1. 可以看到handler发送的消息，只是将消息塞到MessageQueue中，
