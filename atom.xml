@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://terge.me/"/>
-  <updated>2016-07-25T02:36:08.465Z</updated>
+  <updated>2016-07-25T12:08:54.015Z</updated>
   <id>http://terge.me/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://terge.me/2016/07/16/%E8%AF%B4%E4%B8%80%E4%B8%8BHandler%E7%9A%84%E5%8E%9F%E7%90%86/"/>
     <id>http://terge.me/2016/07/16/说一下Handler的原理/</id>
     <published>2016-07-16T07:33:31.000Z</published>
-    <updated>2016-07-25T02:36:08.465Z</updated>
+    <updated>2016-07-25T12:08:54.015Z</updated>
     
     <content type="html">&lt;p&gt;##主线任务  &lt;/p&gt;
 &lt;h4 id=&quot;Handler在解决什么问题&quot;&gt;&lt;a href=&quot;#Handler在解决什么问题&quot; class=&quot;headerlink&quot; title=&quot;Handler在解决什么问题?&quot;&gt;&lt;/a&gt;Handler在解决什么问题?&lt;/h4&gt;&lt;p&gt;handler 是为了解决线程间通讯的问题而设计的&lt;/p&gt;
@@ -35,7 +35,7 @@
 &lt;pre&gt;&lt;code&gt;1. 他的消息发给谁？  
 2. 消息又是由谁来消费的?
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;看看我们熟悉的四基友是如何协同工作的才能回答上述两个疑问：Thread - Looper - MessageQueue - Handler  &lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;http://oaumghlfk.bkt.clouddn.com/handler.png&quot; alt=&quot;Handler-flow&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://oaumghlfk.bkt.clouddn.com/handler.png?watermark/2/text/dGVyZ2UubWU=/font/5a6L5L2T/fontsize/500/fill/I0E3MDYwNg==/dissolve/54/gravity/SouthEast/dx/10/dy/10&quot; alt=&quot;Handler-flow&quot;&gt;&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;可以看到handler发送的消息，只是将消息塞到MessageQueue中，&lt;/li&gt;
 &lt;li&gt;MessageQueue中的消息会被Looper逐个取出来&lt;/li&gt;
