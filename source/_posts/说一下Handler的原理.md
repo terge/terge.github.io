@@ -261,16 +261,8 @@ loop这里有几点需要注意：
 ## Part3 扩展
 
 ####  ThreadLoacal是什么鬼
-每个讲Handler都要提到theadLocal,这个与主题没有一毛钱关系，将其理解成Thread一个Map就好，想详细了解的自行Google,个人觉得这东西与Handler原理扯不上关系
-
-####  MessageQueue是怎么组织的？BlockQueue?
-具体的实现都在native中 ？暂且当做BlockQueue来理解//todo
-enqueueMessage
-异常情况(msg.target == null  || msg.isInUse() )
-sendMessage会自动设置target,//什么场景下修改会为空？？
-msg.isInUse会在入队列时候修改，所以在重复使用时候可以通过Message.obtain(msg)来客隆一份数据一样但是没有使用过的Message来使用
-
-此队列并非先进先出队列，而是一个LinkedQueue,在enqueueMessage,会根据Message.when，将其插入到合适的位置，队列中的消息是按照when排序的
+市面上Handler都要提到theadLocal,如果我不提是不是显得我不够深入？  
+将其理解成Thread一个Map就好，想深入了解的自行Google,个人觉得这与主题扯不上关系
 
 
 ####  Message.when
@@ -287,31 +279,23 @@ Handler.obtain系列会将Message.target赋值为this
 也就是是说在使用哪个Handler发送消息，最终一定是进了他的Looper
 但是一旦enqueueMessage后，处理逻辑就以及脱离了Handler的控制了，执行的结果都只会发送到Message.target中
 
-
 ####  sendMessage与postRunable有什么区别
-
 handler.sendMessage 和handler.postRunanable其实质上最后都是调用到handler.sendMessageAt(msg,time)，runnable只是赋值给了msg.callback,也是发送一个消息　　
 如果你愿意，完全可以实例化一个Ｍessage，将runable赋值给msg.callback，再通过handler.sendMessage来发送runnable  
 注:这种方式可以用于统一处理，比如switch-case中，有的case是sendMessage,有的是postRunanable,这样就可以在case里面只处理Message，对于postRunanable的情况也使用message来处理，在switch-case的外层统一调用sendMessage来发送
 
-需要注意的是，在消费Message时候，是优先处理runnable,这个在Part2最后部分已经有注释出来，这里不再重复
-
 #### Handler消费消息时候处理的优先顺序
+Handler处理消息是按如下顺序来处理的
+ msg.callback --> handler.callback --> handler.handlerMessage(msg)
+ 如果设置了msg.callback,那么会优先处理，此时对其设置的msg.what 和msg.obj都是没有意义的
+ handler.callback一般我们不会设置，后续理解HandlerThread会讲到，如果设置了handler.callback，那么消息也不会进入handlerMessage里面的
+ 最后才是使用handler.handlerMessage来消费此消息
 
 
-## Part4 思考
 ####  如何停止Looper
-Looper在loop的时候，如果取到一个Message为null，就会自行跳出，但是MessageQueue只有在队列为空和已经退出时候才会给Looper返回null. 不能通过发送null消息来停止，
-同时Looper本身也提供了quite api来退出循环，原理是调用MQ.quite，在下一个next时候MQ返回给Looper一个null,这样Looper就自行结束
+Looper在loop的时候，如果取到一个Message为null，就会自行跳出，只有在MQ为空或者MQ已经退出了才会给Looper返回null. 不能通过发送null消息来停止，可以调用Looper.quit()来停止，它调用MQ.quite，在下一个next时候MQ返回给Looper一个null,这样Looper就自行结束
 
-在Looper中会调用msg.target.dispatchMessage(msg),这样又将消息返回给handler来执行了，而此时消息执行是looper中调用的，也就是消息执行是在looper所在的线程调用的，这样此消息也就在此线程被消费
-同时会调用msg.resycleUnchecked()回收此对象
 
-####  消息执行的优先级
-- 会先处理msg.callback也（post进来的runnable就是设置到callback中）
-- 如果handler有设置callback，消息会发送到callback的handlermessge()中消费
-- 如果没设置就在本handler.handlerMessage()中消费
-- 而一般情况下我的处理逻辑都在handlerMessage中，这样消息就又回来了
 ####  聊一聊HandlerThread
 - http://blog.csdn.net/qq_23547831/article/details/50936584
 
