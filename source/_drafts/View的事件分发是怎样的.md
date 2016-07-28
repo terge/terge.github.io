@@ -5,3 +5,7 @@ tags:
 
 
 http://www.jianshu.com/p/2be492c1df96
+
+https://dreamerhome.github.io/2016/07/25/viewEventDispatch/
+
+http://blog.csdn.net/huachao1001/article/details/51866287

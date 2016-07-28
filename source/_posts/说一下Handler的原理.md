@@ -7,7 +7,7 @@ tags:
 ## Part1 : Handler原理概述
 
 ####  Handler在解决什么问题?
-“handler 是为了解决线程间通讯的问题而设计的”  
+“handler 是为了解决线程间通讯的问题而设计的”
 
 
 对于这个回答我是不满意的：　　
@@ -54,7 +54,7 @@ handler主要提供这两个功能（其他一些功能都是围绕这两个转�
 
 再来回答那两个问题：
 1. 它的消息发给谁？
-	Handler实例化时候用了哪个Lopper,消息就会发送到那个looper对应的MessageQueue中  
+	Handler实例化时候用了哪个Lopper,消息就会发送到那个looper对应的MessageQueue中
 2. 消息又是由谁来消费的?
 	这个Looper对应的线程是哪一个，消息就会被那个线程消费
 
@@ -127,7 +127,7 @@ public Handler(Looper looper, Callback callback, boolean async) {
 		}
 		```
 
-Handler 在实例化时候就会初始化Looper和MQ  
+Handler 在实例化时候就会初始化Looper和MQ
 上面Handler.sendMessage,msg最终是入到队列里了，这个MQ就是Looper.mQueue
 并且Looper和MQ都是final的，Handler构造完之后就不可改变
 到此Handler这一边的逻辑就告一段落，我们继续梳理MQ.equeue之后的逻辑
@@ -198,7 +198,7 @@ boolean enqueueMessage(Message msg, long when) {
 ```
 啥也不说了，都在酒里了，哦不，在注释里
 上面说了具体的Message入队的细节，还是没有讲入队之后的事情
-那接下来就要去MQ对应的Looper里面看实现了  
+那接下来就要去MQ对应的Looper里面看实现了
 ####    Lopper.loop()
 
 ```java
@@ -228,23 +228,24 @@ public static void loop() {
 ```
 Looper.loop执行逻辑是循环读取MQ中的mesage，然后执行message.target.dispatchMessage
 而这个message.target就是在enqueue时候制定的handler
-那，我们再跟踪到Handler.dispatchMessage去看看  
+那，我们再跟踪到Handler.dispatchMessage去看看
 ####    Handler.dispatchMessage()
 
 ```java
 //Handler.dispatchMessage
 public void dispatchMessage(Message msg) {
-	//此处的msg.callback也就是postRunanable发送的runable
+//此处的msg.callback也就是postRunanable发送的runable
     if (msg.callback != null) {
         handleCallback(msg);
     } else {
-			//注意这个mCallback不要与msg.callback混了，这个是handler的callback.后面在讲HandlerThread时候会讲到这里
+	//注意这个mCallback不要与msg.callback混了
+	//这个是handler的callback.后面在讲HandlerThread时候会讲到这里
         if (mCallback != null) {
             if (mCallback.handleMessage(msg)) {
                 return;
             }
         }
-				//呐，回到了我们覆写的handleMessage方法
+	//呐，回到了我们覆写的handleMessage方法
         handleMessage(msg);
     }
 }
@@ -261,7 +262,7 @@ loop这里有几点需要注意：
 ## Part3 扩展
 
 ####  ThreadLoacal是什么鬼
-市面上Handler都要提到theadLocal,如果我不提是不是显得我不够深入？  
+市面上Handler都要提到theadLocal,如果我不提是不是显得我不够深入？
 将其理解成Thread一个Map就好，想深入了解的自行Google,个人觉得这与主题扯不上关系
 
 
@@ -269,7 +270,7 @@ loop这里有几点需要注意：
 MQ是按照Message.when来进行排序的，消息入队时候会按照当前消息要展示的是事件来放到合适的位置，如果直接指定sendMessageAt的时间为０，就会直接放在队头，Handler提供的接口 sendMessage() postRunnable() sendMessageAtFrontOfQueue...这些都只是指定了sendMessageAt(msg,0),这个时间０就会赋值给message.when
 
 但是when可以修改么？
-when是package访问权限(还好不是final)，是否可以通过新建一个与其包名相同的类来修改？
+when是package访问权限(还好不是final)，可以通过新建一个与其包名相同的类来修改？
 when值来自 sendMessageAt的那个时间，在enqueue时候在MessageQueue里面被赋值，入队之后这个值就没有意义了，所以我们修改它也没有意义
 
 ####  Message.target
@@ -281,30 +282,40 @@ Handler.obtain系列会将Message.target赋值为this
 
 ####  sendMessage与postRunable有什么区别
 handler.sendMessage 和handler.postRunanable其实质上最后都是调用到handler.sendMessageAt(msg,time)，runnable只是赋值给了msg.callback,也是发送一个消息　　
-如果你愿意，完全可以实例化一个Ｍessage，将runable赋值给msg.callback，再通过handler.sendMessage来发送runnable  
+如果你愿意，完全可以实例化一个Ｍessage，将runable赋值给msg.callback，再通过handler.sendMessage来发送runnable
 注:这种方式可以用于统一处理，比如switch-case中，有的case是sendMessage,有的是postRunanable,这样就可以在case里面只处理Message，对于postRunanable的情况也使用message来处理，在switch-case的外层统一调用sendMessage来发送
 
 #### Handler消费消息时候处理的优先顺序
 Handler处理消息是按如下顺序来处理的
- msg.callback --> handler.callback --> handler.handlerMessage(msg)
- 如果设置了msg.callback,那么会优先处理，此时对其设置的msg.what 和msg.obj都是没有意义的
- handler.callback一般我们不会设置，后续理解HandlerThread会讲到，如果设置了handler.callback，那么消息也不会进入handlerMessage里面的
- 最后才是使用handler.handlerMessage来消费此消息
+msg.callback --> handler.callback --> handler.handlerMessage(msg)
+如果设置了msg.callback,那么会优先处理，此时对其设置的msg.what 和msg.obj都是没有意义的
+handler.callback一般我们不会设置，后续理解HandlerThread会讲到，如果设置了handler.callback，那么消息也不会进入handlerMessage里面的
+最后才是使用handler.handlerMessage来消费此消息
 
 
 ####  如何停止Looper
-Looper在loop的时候，如果取到一个Message为null，就会自行跳出，只有在MQ为空或者MQ已经退出了才会给Looper返回null. 不能通过发送null消息来停止，可以调用Looper.quit()来停止，它调用MQ.quite，在下一个next时候MQ返回给Looper一个null,这样Looper就自行结束
+Looper在loop的时候，如果取到一个Message为null，就会自行跳出，只有在MQ为空或者MQ已经退出了才会给Looper返回null. 但不能通过发送null消息来停止
+调用Looper.quit()可以停止Looper，实际上是调用MQ.quite，在下一个next时候MQ返回给Looper一个null,这样Looper就自行结束
 
 
 ####  聊一聊HandlerThread
-- http://blog.csdn.net/qq_23547831/article/details/50936584
+本来想一起写的，发现这一主题也可以写很多东西出来，后面会单独写一篇来梳理HandlerThread
 
-####  MainLooper ActivityThread.man() 如何做到一直待机
+####  为什么框架层要提示防止内存泄露？
+我们在使用Handler时候，如果直接在主线程实例化一个线程，会有如下警告提示：
 
+		"This Handler class should be static or leaks might occur .
+		Since this Handler is declared as an inner class, it may prevent the outer class from being garbage collected.
+		If the Handler is using a Looper or MessageQueue for a thread other than the main thread, then there is no issue.
+		If the Handler is using the Looper or MessageQueue of the main thread, you need to fix your Handler declaration,
+		as follows: Declare the Handler as a static class; In the outer class, instantiate a WeakReference to the outer
+		class and pass this object to your Handler when you instantiate the Handler;
+		Make all references to members of the outer class using the WeakReference object."
 
-####  为什么框架层要提示防止内存泄露？因为Looper会一直循环
+都是大白话，意思是：你应该将这个Handler设置为static的，否则可能导致内存泄露，原因呢是因为Handler会持有外部类引用，从而阻止了垃圾回收对外部类的回收，如果这个Handler的Looper关联的是子线程，那这个就没什么问题，但是如果Handler.Looper关联的是主线程，那么你就需要按照以下步骤调整一下了：将Handler申明为static,对于handler对于外部的引用使用WeakReference来持有.
 
-####  MessageQueue 的Barrier是什么鬼
-
-####  ActivityThread是个好东西
-ActivityThread不是Thread
+我们来分析下为什么：
+1. 为什么非静态的Handler会导致内存泄露？
+2. 为什么子线程没问题，主线程会有问题
+3. 为什么对外部的引用使用WeakReference就没问题了
+4. 那么具体怎么解决呢？
