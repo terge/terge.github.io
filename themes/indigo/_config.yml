@@ -21,9 +21,9 @@ menu:
   weibo:
     url: http://www.weibo.com/zigtang
     target: _blank
-  link:
-    text: 测试
-    url: /404
+#  link:
+#    text: 测试
+#    url: /404
 
 rss: /atom.xml
 

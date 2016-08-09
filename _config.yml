@@ -46,6 +46,10 @@ highlight:
 # Category & Tag
 default_category: uncategorized
 category_map:
+  Android: android
+  计划: plan
+  生活: life
+  随想: other
 tag_map:
 
 # Date / Time format

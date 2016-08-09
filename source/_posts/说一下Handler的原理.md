@@ -1,6 +1,7 @@
 ---
 title: 说一下Handler的原理
 date: 2016-07-16 15:33:31
+type: android
 tags:
 ---
 

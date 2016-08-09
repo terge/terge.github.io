@@ -1,6 +1,7 @@
 ---
 title: WHY？HOW? WHEN?
 date: 2016-07-16 15:12:05
+type: plan
 tags:
 ---
 
