@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://terge.me/"/>
-  <updated>2016-08-01T06:28:23.607Z</updated>
+  <updated>2016-08-08T10:04:35.081Z</updated>
   <id>http://terge.me/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://terge.me/2016/07/16/%E8%AF%B4%E4%B8%80%E4%B8%8BHandler%E7%9A%84%E5%8E%9F%E7%90%86/"/>
     <id>http://terge.me/2016/07/16/说一下Handler的原理/</id>
     <published>2016-07-16T07:33:31.000Z</published>
-    <updated>2016-08-01T06:28:23.607Z</updated>
+    <updated>2016-08-08T10:04:35.081Z</updated>
     
     <content type="html">&lt;h2 id=&quot;Part1-Handler原理概述&quot;&gt;&lt;a href=&quot;#Part1-Handler原理概述&quot; class=&quot;headerlink&quot; title=&quot;Part1 : Handler原理概述&quot;&gt;&lt;/a&gt;Part1 : Handler原理概述&lt;/h2&gt;&lt;h4 id=&quot;Handler在解决什么问题&quot;&gt;&lt;a href=&quot;#Handler在解决什么问题&quot; class=&quot;headerlink&quot; title=&quot;Handler在解决什么问题?&quot;&gt;&lt;/a&gt;Handler在解决什么问题?&lt;/h4&gt;&lt;p&gt;“handler 是为了解决线程间通讯的问题而设计的”&lt;/p&gt;
 &lt;p&gt;对于这个回答我是不满意的：　　&lt;/p&gt;
@@ -104,41 +104,6 @@ Make all references to members of the outer class using the WeakReference object
     <summary type="html">
     
       &lt;h2 id=&quot;Part1-Handler原理概述&quot;&gt;&lt;a href=&quot;#Part1-Handler原理概述&quot; class=&quot;headerlink&quot; title=&quot;Part1 : Handler原理概述&quot;&gt;&lt;/a&gt;Part1 : Handler原理概述&lt;/h2&gt;&lt;h4 id=&quot;H
-    
-    </summary>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>WHY？HOW? WHEN?</title>
-    <link href="http://terge.me/2016/07/16/WHY-HOW-WHEN/"/>
-    <id>http://terge.me/2016/07/16/WHY-HOW-WHEN/</id>
-    <published>2016-07-16T07:12:05.000Z</published>
-    <updated>2016-07-24T07:32:41.576Z</updated>
-    
-    <content type="html">&lt;p&gt;WHY ? 为什么要写&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;1. 教学相长：能说清楚才叫真的懂，为了真的懂，就得说清楚
-2. 文案套路：写一个东西，要怎么讲，才能让人听起来自然，且能理解我我所表达的东西，这个很重要，在工作中，设计文档，以及邮件说明问题时候都需要这种思维
-3. 知识沉淀：已经理解一个东西，些许日志不接触，就会生疏，又重头查一遍，得不偿失，得有一个地方去整理这些东西
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;HOW ? 怎样写&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;1. 为了解决什么问题
-2. 具体是怎么去解决此问题的
-3. 有哪些相似的方案，优劣如何
-4. 具体的应用场景
-5. 思考
-6. 原创
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;WHEN ? 什么时候写&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;目标可达，就要求有具体的时间，不然没法衡量
-对于这里的技术文章，&amp;lt;font color=red&amp;gt;每周写一篇&amp;lt;/font&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;</content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;WHY ? 为什么要写&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;1. 教学相长：能说清楚才叫真的懂，为了真的懂，就得说清楚
-2. 文案套路：写一个东西，要怎么讲，才能让人听起来自然，且能理解我我所表达的东西，这个很重要，在工作中，设计文档，以及邮件说明问题时候都需要这种思维
-3. 知
     
     </summary>
     
